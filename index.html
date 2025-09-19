@@ -260,17 +260,20 @@
   // --- Scan Throttle ---
   let lastScanTime = 0;
 
-  // --- Normalize & Lookup ---
   function normalize(str) {
-    return str ? str.trim().replace(/\s+/g, "").toUpperCase() : "";
+    return str ? str.toString().trim().replace(/\s+/g, "").toUpperCase() : "";
   }
 
+  // --- Lookup in Firebase ---
   async function lookupPass(passId) {
     const snapshot = await db.ref('registrations').once('value');
     const data = snapshot.val();
-    const normalizedId = normalize(passId);
     if (!data) return null;
-    return Object.values(data).find(r => normalize(r.passId) === normalizedId);
+
+    // Convert object to array with keys for updating scanned
+    const entries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    const normalizedId = normalize(passId);
+    return entries.find(r => normalize(r.passId) === normalizedId);
   }
 
   async function markScanned(entry) {
@@ -351,6 +354,7 @@
 
   setTimeout(createConfetti, 500);
 </script>
+
 
 </body>
 </html>
